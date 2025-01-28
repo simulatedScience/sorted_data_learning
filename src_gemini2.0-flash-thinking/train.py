@@ -9,7 +9,7 @@ from tqdm import tqdm
 import numpy as np
 
 from preprocess import load_mnist_data
-from constants import DATA_DIR, MODEL_DIR, TRAINING_LOG_DIR
+from constants import DATA_DIR, MODEL_DIR, TRAINING_LOG_DIR, SNAPSHOT_DIR
 
 class DenseNN(nn.Module):
     def __init__(self, input_size, hidden_layers, output_size):
@@ -79,13 +79,16 @@ def train_model(dataset_type, hidden_layers, epochs, batch_size, learning_rate, 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # 3. Training Loop and Snapshot Saving
-    os.makedirs(output_dir, exist_ok=True)
+    # 3. Create directories for saving models and logs
+    model_dir = os.path.join(output_dir, f"model_{dataset_type}")
+    snapshots_dir = os.path.join(model_dir, 'snapshots')
+    os.makedirs(snapshots_dir, exist_ok=True)
     os.makedirs(TRAINING_LOG_DIR, exist_ok=True)
     log_filepath = os.path.join(TRAINING_LOG_DIR, f"training_log_{dataset_type}.npy")
     training_log = [] # List to store training data (step, epoch, batch, accuracy_dict)
     gradient_steps = 0
 
+    # 4. Training Loop and Snapshot Saving
     for epoch in range(epochs):
         model.train()
         progress_bar = tqdm(enumerate(train_loader), total=len(train_loader), desc=f"Epoch [{epoch+1}/{epochs}]") # Progress bar
@@ -102,7 +105,7 @@ def train_model(dataset_type, hidden_layers, epochs, batch_size, learning_rate, 
                 training_log.append({'step': gradient_steps, 'epoch': epoch + 1, 'batch': batch_idx + 1, 'accuracy': test_accuracy})
 
                 snapshot_name = f"model_{dataset_type}_epoch{epoch+1}_batch{batch_idx+1}_step{gradient_steps}.pth"
-                snapshot_path = os.path.join(output_dir, snapshot_name)
+                snapshot_path = os.path.join(snapshots_dir, snapshot_name)
                 torch.save(model.state_dict(), snapshot_path)
 
                 avg_accuracy = np.mean(list(test_accuracy.values())) # Average accuracy for progress bar
@@ -110,7 +113,7 @@ def train_model(dataset_type, hidden_layers, epochs, batch_size, learning_rate, 
 
     np.save(log_filepath, training_log) # Save training log to file
     print(f"Finished Training for {dataset_name} dataset. Training log saved to {log_filepath}")
-    final_model_path = os.path.join(output_dir, f"model_{dataset_type}_final.pth") # Save final model
+    final_model_path = os.path.join(model_dir, f"model_{dataset_type}_final.pth") # Save final model
     torch.save(model.state_dict(), final_model_path)
     print(f"Final model saved to {final_model_path}")
 

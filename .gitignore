@@ -1,0 +1,8 @@
+# pytorch data
+*.pt
+# numpy training logs
+**/training_logs
+# datasets (can be generated with preprocess.py)
+data
+# model training snapshots (can be generated with train.py)
+models/**/snapshots

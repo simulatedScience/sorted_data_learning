@@ -1,7 +1,7 @@
 @echo off
 set SRC_DIR=src_gemini2.0-flash-thinking
-set N_EPOCHS=5
-set LEARNING_RATE=0.001
+set N_EPOCHS=1
+set LEARNING_RATE=0.002
 echo Training models...
 
 echo Training with shuffled data...
